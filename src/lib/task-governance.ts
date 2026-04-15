@@ -22,8 +22,8 @@ export function auditBoardOverride(taskId: string, fromStatus: string, toStatus:
   const now = new Date().toISOString();
   run(
     `INSERT INTO events (id, type, task_id, message, metadata, created_at)
-     VALUES (lower(hex(randomblob(16))), 'system', ?, ?, ?, ?)`,
-    [taskId, `Board override: ${fromStatus} → ${toStatus}`, JSON.stringify({ boardOverride: true, reason: reason || null }), now]
+     VALUES (?, 'system', ?, ?, ?, ?)`,
+    [crypto.randomUUID(), taskId, `Board override: ${fromStatus} → ${toStatus}`, JSON.stringify({ boardOverride: true, reason: reason || null }), now]
   );
 }
 
@@ -73,14 +73,14 @@ export async function escalateFailureIfNeeded(taskId: string, stage: string): Pr
 
     run(
       `INSERT OR REPLACE INTO task_roles (id, task_id, role, agent_id, created_at)
-       VALUES (COALESCE((SELECT id FROM task_roles WHERE task_id = ? AND role = 'fixer'), lower(hex(randomblob(16)))), ?, 'fixer', ?, ?)`,
-      [taskId, taskId, fixer.id, now]
+       VALUES (COALESCE((SELECT id FROM task_roles WHERE task_id = ? AND role = 'fixer'), ?), ?, 'fixer', ?, ?)`,
+      [taskId, crypto.randomUUID(), taskId, fixer.id, now]
     );
 
     run(
       `INSERT INTO task_activities (id, task_id, agent_id, activity_type, message, created_at)
-       VALUES (lower(hex(randomblob(16))), ?, ?, 'status_changed', ?, ?)`,
-      [taskId, fixer.id, `Escalated to ${fixer.name} after repeated failures in ${stage}`, now]
+       VALUES (?, ?, ?, 'status_changed', ?, ?)`,
+      [crypto.randomUUID(), taskId, fixer.id, `Escalated to ${fixer.name} after repeated failures in ${stage}`, now]
     );
   });
 

@@ -64,8 +64,8 @@ export async function syncGatewayAgentsToCatalog(options?: { force?: boolean; re
         } else {
           run(
             `INSERT INTO agents (id, name, role, description, avatar_emoji, is_master, workspace_id, model, source, gateway_agent_id, created_at, updated_at)
-             VALUES (lower(hex(randomblob(16))), ?, ?, ?, '🔗', 0, 'default', ?, 'gateway', ?, ?, ?)`,
-            [name, role, `Auto-synced from OpenClaw (${gatewayId})`, ga.model || null, gatewayId, ts, ts]
+             VALUES (?, ?, ?, ?, '🔗', 0, 'default', ?, 'gateway', ?, ?, ?)`,
+            [crypto.randomUUID(), name, role, `Auto-synced from OpenClaw (${gatewayId})`, ga.model || null, gatewayId, ts, ts]
           );
         }
         changed += 1;
@@ -73,8 +73,9 @@ export async function syncGatewayAgentsToCatalog(options?: { force?: boolean; re
 
       run(
         `INSERT INTO events (id, type, message, metadata, created_at)
-         VALUES (lower(hex(randomblob(16))), 'system', ?, ?, ?)`,
+         VALUES (?, 'system', ?, ?, ?)`,
         [
+          crypto.randomUUID(),
           `Agent catalog sync completed (${options?.reason || 'automatic'})`,
           JSON.stringify({ changed, reason: options?.reason || 'automatic' }),
           ts,

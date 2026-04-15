@@ -24,15 +24,15 @@ test('evidence gate requires deliverable + activity', () => {
 
   run(
     `INSERT INTO task_deliverables (id, task_id, deliverable_type, title, created_at)
-     VALUES (lower(hex(randomblob(16))), ?, 'file', 'index.html', datetime('now'))`,
-    [taskId]
+     VALUES (?, ?, 'file', 'index.html', datetime('now'))`,
+    [crypto.randomUUID(), taskId]
   );
   assert.equal(hasStageEvidence(taskId), false);
 
   run(
     `INSERT INTO task_activities (id, task_id, activity_type, message, created_at)
-     VALUES (lower(hex(randomblob(16))), ?, 'completed', 'did thing', datetime('now'))`,
-    [taskId]
+     VALUES (?, ?, 'completed', 'did thing', datetime('now'))`,
+    [crypto.randomUUID(), taskId]
   );
 
   assert.equal(hasStageEvidence(taskId), true);
@@ -45,13 +45,13 @@ test('task cannot be done when status_reason indicates failure', () => {
   run(`UPDATE tasks SET status_reason = 'Validation failed: CSS broken' WHERE id = ?`, [taskId]);
   run(
     `INSERT INTO task_deliverables (id, task_id, deliverable_type, title, created_at)
-     VALUES (lower(hex(randomblob(16))), ?, 'file', 'index.html', datetime('now'))`,
-    [taskId]
+     VALUES (?, ?, 'file', 'index.html', datetime('now'))`,
+    [crypto.randomUUID(), taskId]
   );
   run(
     `INSERT INTO task_activities (id, task_id, activity_type, message, created_at)
-     VALUES (lower(hex(randomblob(16))), ?, 'completed', 'did thing', datetime('now'))`,
-    [taskId]
+     VALUES (?, ?, 'completed', 'did thing', datetime('now'))`,
+    [crypto.randomUUID(), taskId]
   );
 
   assert.equal(taskCanBeDone(taskId), false);
@@ -72,13 +72,13 @@ test('failure counter reads status_changed failure events', () => {
 
   run(
     `INSERT INTO task_activities (id, task_id, activity_type, message, created_at)
-     VALUES (lower(hex(randomblob(16))), ?, 'status_changed', 'Stage failed: verification → in_progress (reason: x)', datetime('now'))`,
-    [taskId]
+     VALUES (?, ?, 'status_changed', 'Stage failed: verification → in_progress (reason: x)', datetime('now'))`,
+    [crypto.randomUUID(), taskId]
   );
   run(
     `INSERT INTO task_activities (id, task_id, activity_type, message, created_at)
-     VALUES (lower(hex(randomblob(16))), ?, 'status_changed', 'Stage failed: verification → in_progress (reason: y)', datetime('now'))`,
-    [taskId]
+     VALUES (?, ?, 'status_changed', 'Stage failed: verification → in_progress (reason: y)', datetime('now'))`,
+    [crypto.randomUUID(), taskId]
   );
 
   assert.equal(getFailureCountInStage(taskId, 'verification'), 2);
